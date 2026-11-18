@@ -12,5 +12,7 @@ data/
 *.zip
 artifacts/models/*
 !artifacts/models/.gitkeep
+!artifacts/models/hist_gradient_boosting/
+!artifacts/models/tuned/
 outputs/
 

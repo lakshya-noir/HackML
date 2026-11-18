@@ -45,4 +45,16 @@ Read `docs/CONTRACT.md` before implementing interfaces. Do not edit another owne
 
 Public GitHub repository with all source, experiment configurations/results, optimisation history, inference assets (within size constraints), Folium generation code/HTML, installation and deployment instructions. One consolidated PDF report with measured results and demonstration evidence. Never commit credentials or fabricate results.
 
-This initial scaffold does not yet implement training, decoding, API or UI.
+Decoder, API and UI are developed separately by the assigned owners.
+
+## ML experiments
+
+Candidate generation, surrogate reference alignment, five-model training and Bayesian tuning are now implemented. See `docs/ML_NOTES.md` for methodology, metric definitions, limitations and backend integration. Decoder, API and UI remain assigned to their owners.
+
+```bash
+python -m pip install -r requirements-ml.txt
+python scripts/train_models.py --max-observations 200
+python scripts/train_models.py --max-observations 200 --trials 12
+```
+
+Results are saved under `results/`; feature caches under ignored `outputs/`. The initial selected and tuned artifacts are included under `artifacts/models/hist_gradient_boosting/` and `artifacts/models/tuned/`; other experimental artifacts stay local. Use the pinned ML dependencies when loading the saved model on Laptop 1.
