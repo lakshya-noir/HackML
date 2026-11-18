@@ -66,3 +66,17 @@ We retained the existing model/labels for the first evaluation and documented th
 ## Documentation and publication follow-up
 
 Lakshya subsequently requested publishing these changes. We restructured `docs/ML_NOTES.md` into a complete implementation/results/revision guide with 40 viva questions and answers. The guide includes the measured audit, geometry, candidates/features, surrogate labels, grouped validation, model configurations/results, mixed tuning outcome, inspection findings, commands and remaining integration work. README links and pinned plotting/map dependencies were added. Only selected evidence directories are allowed through Git ignore rules; raw data, environments and feature caches remain excluded. The earlier no-push statement above describes the analysis session, before this later publication request.
+
+## After Evaluation 1: controlled model-improvement experiment
+
+Lakshya took over remaining project work. We identified a mismatch: initial classifier training used nearest-reference labels, but the integrated API scores predictions against order-aware monotone labels. Both are approximate; changing labels can change reported scores without improving physical truth, so all variants must be evaluated against the same labels.
+
+We added `scripts/improve_model.py` to compare three controlled variants: nearest labels with 200 training points per trip, monotone labels with 200, and monotone labels with up to 1,000. The feature schema, candidate generation, classifier hyperparameters and HMM configuration stay fixed. Model choice uses three grouped training folds and mean held-out-trip Top-1 against a common monotone alignment. Only after that selection do we compare all variants on full student-test trips, including HMM results.
+
+Each run writes a new timestamped directory under `outputs/model-improvement/`, retaining the original model checksum and fold IDs. The live API model is not replaced. This is an experiment, not a promised improvement. It does not use evaluator data. Results and a recommendation will be recorded after completion.
+
+The run finished in about 71 seconds. The larger monotone-label model won training CV (84.48% Top-1 versus baseline 83.75%). Across all ten full student-test trips, mean trip classifier agreement improved 86.33% → 87.48%; HMM agreement improved 91.22% → 91.95%. Route F1 remained essentially unchanged at 96.80%. Some trips regressed. We retained the live model unchanged and saved the candidate model/report separately for API verification and a deliberate deployment decision. See the run's READ_FIRST file for exact definitions and aggregation differences.
+
+## Candidate API verification and publication
+
+Lakshya asked to verify the candidate through the API before pushing. A separate server loaded it on localhost port 8001. All ten student-test trips produced fresh real predictions. Classifier/HMM metrics matched the offline report, and UI assets, CORS, errors and cache bypass checks passed. The saved verification identifies the candidate by path and SHA-256. The original model checksum was unchanged; the original demo default was retained. The temporary candidate server was stopped. We prepared the controlled experiment code, three model artifacts, exact results, chart and verification evidence for publication under its timestamped path. This verifies HTTP integration, not a two-laptop/browser demonstration.

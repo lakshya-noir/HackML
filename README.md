@@ -1,5 +1,7 @@
 # PathSnap
 
+Verified candidate experiment: [order-aware labels and increased training coverage](outputs/model-improvement/20261118-120758/READ_FIRST.md). Includes grouped-CV comparison, full-trip results, three artifacts and API verification. The default demo model remains `artifacts/models/tuned`; the candidate is versioned separately.
+
 ## Run the two-laptop demo
 
 See [Mahesh's exact Laptop 2 instructions](docs/TWO_LAPTOP_DEMO.md). Laptop 1 runs `python -m pathsnap.api.app --host 0.0.0.0 --port 8000`. Mahesh runs `python -m http.server 5500 --bind 127.0.0.1 --directory ui` from his clone and opens `http://localhost:5500`. In the API box he enters Laptop 1's LAN URL (not his own localhost). No ML dependencies or data are needed on his machine.

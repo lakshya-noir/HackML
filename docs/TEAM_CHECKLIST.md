@@ -179,6 +179,8 @@ These are future tasks. Publishing the checklist does not authorise final submis
 
 ## Status log
 
+- 12:14 candidate update: controlled model experiment completed and verified through a separate FastAPI instance on port 8001. All ten fresh predictions matched offline classifier/HMM metrics; CORS/assets/errors/cache checks passed. Evidence under `outputs/model-improvement/20261118-120758/`. Original live model unchanged; default-model/decoder freeze V5 and physical two-laptop proof remain pending. The larger-training experiment covers V4's optional increase in sampled training coverage; it is not full-data retraining.
+
 - 10:36 AM planning baseline: C1–C11 complete based on local files and prior execution. Visual label validation, full EDA, plots, HMM, API, UI, network demo, report and submission remain unverified. Teammate work on other laptops has not been inspected.
 - Subsequent map-generation session: D3 complete; 4,988 full-trip points scored across three selected student-test trips. D4 remains pending human review. Simple notes: `docs/WORK_LOG_SIMPLE.md`. Member names confirmed: Nikhil (D), Mahesh (U).
 - Approximately 11:10 AM: local all-trip audit, static image inspection, three documented findings, model diagnostics and first-evaluation evidence pack completed by L/Codex while Nikhil unavailable. D1/D2/D4/D5/M1/M2/M3/E1 closed with evidence. Nikhil's personal review, official alignment clarification, teammate integration, rehearsal and final deployment remain unverified. No pushes.

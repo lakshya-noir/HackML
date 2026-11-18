@@ -19,4 +19,7 @@ outputs/*
 !outputs/evaluation_1130/
 !outputs/inspection/
 !outputs/PathSnap-1130-evidence.zip
+!outputs/model-improvement/
+outputs/model-improvement/*
+!outputs/model-improvement/20261118-120758/
 

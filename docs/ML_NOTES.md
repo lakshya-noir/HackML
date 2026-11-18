@@ -328,3 +328,17 @@ Not established here: interactive Folium browser rendering, independently verifi
 ## 16. Team handoff before 11:30
 
 Lakshya: explain features, surrogate labels, grouped CV and selection. Nikhil: review the audit and three findings in his own words. Mahesh: use actual charts/results in the report. Nakul: confirm model loading, candidate correspondence and decoder/API progress. The evidence guide supports preparation; it does not replace personal understanding.
+
+## 17. Post-checkpoint controlled improvement experiment
+
+After Evaluation 1, `scripts/improve_model.py` compared nearest-label/200-point, monotone-label/200-point and monotone-label/up-to-1000-point training. Same features, candidate budget, tuned classifier settings and HMM configuration were retained. Selection used three trip-grouped training folds with a common full-validation-trip monotone-label Top-1 metric, different from the original binary-F1 selection experiment.
+
+Run: `outputs/model-improvement/20261118-120758/`. Exact results, baseline SHA-256 and folds are in `report.json`; read `READ_FIRST.md` and regenerate its plot with `python scripts/summarize_improvement.py <run_dir>`. This selected run and its three model artifacts are included in the repository; other experiment runs remain ignored.
+
+CV Top-1 improved 83.753% → 84.165% → 84.476%. The larger monotone-label variant won CV. On all ten full student-test trips, mean trip HMM point agreement improved from 91.217% to 91.949%, while mean trip route F1 stayed practically unchanged (96.801% → 96.798%). Classifier mean trip agreement improved from 86.327% to 87.476%. Observation-weighted HMM agreement improved 89.671% → 90.412%; do not confuse these aggregation methods.
+
+This is a modest measured pointwise improvement, not an improvement in every metric or trip. Trip 77 improved; trip 0 regressed. No live API artifact was replaced. Both labels remain geometric surrogates, and the model has not been validated on evaluator data. Next steps are candidate-artifact API verification and final version selection, decoder validation, deployment proof and report completion.
+
+### Candidate verified through FastAPI
+
+At 12:14, a separate API on port 8001 loaded the larger monotone-label candidate. All ten fresh trip predictions passed, with both-mode metrics matching offline results within four-decimal API rounding. UI static assets, CORS preflight, invalid-trip 404 and cache/fresh-output consistency passed. Evidence: `outputs/model-improvement/20261118-120758/api_verification.json`. Original model hash unchanged. Candidate publication is separate from promotion to the default; the temporary test server was stopped, and the original demo default remains `artifacts/models/tuned`.
