@@ -6,7 +6,7 @@ GPS map matching and route reconstruction for the PES University ML hackathon, 1
 
 ```bash
 git clone https://github.com/lakshya-noir/HackML.git
-cd HackML
+cd HackML.
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
