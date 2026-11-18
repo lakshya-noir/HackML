@@ -17,7 +17,7 @@ Agree on changes together before changing function signatures or API fields.
 
 ## Model ↔ decoder
 
-Proposed functions, to implement in the owners' modules:
+Implemented interfaces:
 
 ```python
 # pathsnap/features/candidates.py
@@ -40,7 +40,7 @@ decode(trip, candidates, scores, config) -> dict
 
 An empty candidate list must retain its observation position. Missing predictions use `None`, not an invented arc. Decoder owns transition feasibility, route completion and explicit gap policy. Backend builds geometry from decoded graph arcs; do not draw straight shortcuts across disconnected sections.
 
-Observation/reference alignment is an unresolved development task. Document the method and ambiguity; never silently zip `.track` with `.route`.
+Initial experiments use nearest-reference labels; final training/evaluation use monotone route alignment. Both remain geometric surrogate labels. Never silently zip `.track` with `.route`.
 
 ## API ↔ UI
 
@@ -58,11 +58,11 @@ Observation/reference alignment is an unresolved development task. Document the 
 - Unknown trip: 404. Unavailable model/assets: 503. Do not substitute fake predictions.
 - API resolves trip IDs against its allowed local registry, never arbitrary client paths.
 - Ground truth stays server-side and outside the prediction pipeline. Do not return reference routes or reference labels to the evaluator UI.
-- Browser UI requires appropriate CORS; Python/Streamlit server-side requests do not.
+- Browser UI requires appropriate CORS; non-browser server-side requests do not.
 
 ## Demo network
 
-Run the backend on Laptop 1 with `--host 0.0.0.0 --port 8000` once the app exists. Laptop 2 must use `http://<laptop-1-LAN-IP>:8000`, not localhost. Test `/health` immediately on the actual network. Wi-Fi client isolation may require a shared hotspot.
+Run the backend on Laptop 1 with `--host 0.0.0.0 --port 8000` . Laptop 2 must use `http://<laptop-1-LAN-IP>:8000`, not localhost. Test `/health` immediately on the actual network. Wi-Fi client isolation may require a shared hotspot.
 
 ## Evidence
 

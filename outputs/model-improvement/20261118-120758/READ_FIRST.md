@@ -1,3 +1,5 @@
+> Historical controlled experiment and candidate verification. The candidate was subsequently frozen as `pathsnap-monotone-v1`; use `artifacts/final_release.json` and `docs/report/FINAL_RESULTS.md` for current defaults. Statements below about the earlier default describe the experiment at that time.
+
 # Controlled model improvement — 12:07 run
 
 **Later update:** this candidate has now been promoted to release `pathsnap-monotone-v1`, default model `artifacts/models/final_monotone_v1`. Historical statements below describe the experiment and temporary-server stage. Use `docs/report/FINAL_RESULTS.md` and `results/api_verification_final.json` for current default results. The original model remains preserved, but is no longer the default.

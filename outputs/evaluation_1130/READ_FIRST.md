@@ -69,15 +69,6 @@ Show `03_tuning_comparison.png`. We ran 12 Optuna TPE trials with three trip-gro
 
 Best parameters: learning rate 0.136014, leaf nodes 27, L2 regularisation 1.486758. The chosen CV binary macro F1 rose from 0.90158 to 0.90252. Student-test Top-1 declined slightly from 85.85% to 85.70%; conditional candidate log loss improved from 0.39682 to 0.39275. Tuning gave mixed results, not an improvement in every metric. Neither evaluator data nor evaluator labels were used.
 
-## What remains outside this finished evidence pack
+## Scope
 
-Nakul's HMM/Viterbi and API must still be integrated and tested with us. The classifier-only versus decoded comparison, route continuity/sequence metrics, two-laptop demo, final report, final artifacts and submission require actual verification. Ask the professor whether an official observation-to-reference alignment method is expected; our current method is geometric and approximate.
-
-## Handoff now
-
-- **Nikhil:** read the data section and three findings; explain them in your own words. This is completed analysis you can review, not a claim that you personally performed the checks.
-- **Mahesh:** use these PNGs/CSVs and verified values in the report. Keep initial sampled model results separate from three-trip full-map inspection.
-- **Nakul:** handle long GPS gaps, zero-length arcs and unreachable candidate transitions explicitly; compare real classifier-only and decoded results on permitted development data.
-- **Lakshya:** understand the nine features, surrogate-label limitation and selection metric; ask about official alignment; verify Nakul can load the artifact. Rehearse together before 11:30.
-
-Reproduce with `.venv/bin/python scripts/prepare_evaluation.py` after map generation. Data audit and model metrics are separate: the audit covers all raw development observations; model experiments use the documented sample.
+This retained pack describes the initial sampled classifier experiment and raw-data audit. Final full-trip HMM/API results are recorded in `results/decoder_summary_student_test.json` and `docs/report/FINAL_RESULTS.md`. Initial model samples and complete raw-data counts refer to different populations.

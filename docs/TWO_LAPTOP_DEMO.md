@@ -1,52 +1,49 @@
-# Two-laptop setup: Mahesh runs the UI
+# Two-laptop deployment
 
-Laptop 1 hosts data, trained model and FastAPI. Laptop 2 (Mahesh) serves the static evaluator UI. Both must join the same reachable network. A local one-machine check does not prove this network requirement.
+Laptop 1 hosts the frozen model, graph/data, HMM/Viterbi and FastAPI. Laptop 2 runs only the evaluator UI. Lakshya operates the UI; Nakul hosts the API, with Nikhil supporting verification. Screenshots and deployment claims must identify the machines actually used, not imply an unobserved network test.
 
-Final default: **pathsnap-monotone-v1**, `artifacts/models/final_monotone_v1` plus `artifacts/decoder_config.json`. No environment overrides needed; clear any earlier `PATHSNAP_MODEL_DIR` override. `/health` must report this release and `model_loaded: true`, with hashes matching `artifacts/final_release.json`. Pull/restart the backend to adopt it; browser refresh alone does not replace a running API. The UI shows the release after prediction.
+## Laptop 1 model and API
 
-## Laptop 1 — Lakshya or Nakul
-
-From the repository root, with local data imported:
+Activate the project Python environment, install `requirements.txt`, and place organiser evaluator files directly under `data/evaluator_test/TRIP_ID/TRIP_ID.{track,nodes,arcs,route}`. Raw data is excluded from Git; a clone does not include it. Final model/config files are included, so retraining is unnecessary.
 
 ```bash
-git pull --ff-only origin main
-python -m pip install -r requirements-demo.txt
-python -m pathsnap.api.app --host 0.0.0.0 --port 8000
+python -m pathsnap.api.app --host 0.0.0.0 --port 8003 --trips-dir data/evaluator_test
 ```
 
-Use `.venv/bin/python` on Lakshya's Mac. On another machine activate its Python environment first. The default development partition is `data/student_test`, not reserved evaluator data. When organisers authorise final testing, restart with `--trips-dir data/evaluator_test` (or the actual provided directory). References remain server-side for metrics only.
+For development select `data/student_test`. Keep the server running. If the port is occupied, identify the existing process; reuse a healthy correct server or stop that verified old API before restarting. Do not repeatedly start extra copies. The application default is 8000; all examples here explicitly choose 8003.
 
-Find Laptop 1's active Wi-Fi IPv4 address: macOS System Settings → Wi-Fi → Details → TCP/IP; Windows `ipconfig`. Do not use 127.0.0.1 or 0.0.0.0 as the address on Laptop 2.
+Open `http://localhost:8003/health` on Laptop 1. Expected: `model_loaded: true`, `release_id: pathsnap-monotone-v1`, `trips_dir: evaluator_test`, `n_trips: 10`. Hashes must match `artifacts/final_release.json`. Restart after any intentional artifact change; a browser refresh does not reload Python's model cache.
 
-## Laptop 2 — Mahesh
+Find the current active Wi-Fi IPv4: Windows `ipconfig` (ignore VMware/VPN adapters); macOS Wi-Fi details or `ipconfig getifaddr en0` where en0 is the active Wi-Fi interface. Recheck the address after switching networks.
 
-Only Python's standard library and the repository UI folder are needed. No ML installation, dataset or model is needed here.
+## Laptop 2 UI
+
+Only Python's standard library and the `ui/` folder are needed. No model, ML dependencies or raw data are required.
 
 ```bash
-git clone https://github.com/lakshya-noir/HackML.git
-cd HackML
-# If already cloned, use: git pull --ff-only origin main
 python -m http.server 5500 --bind 127.0.0.1 --directory ui
 ```
 
-On macOS/Linux use `python3` if `python` is unavailable; on Windows `py` also works. Open **http://localhost:5500** in Mahesh's browser. In the API box enter **http://LAPTOP_1_IP:8000**, click **Connect**, select a trip, leave **Run fresh inference** checked, then click **Predict route**.
+Open `http://LAPTOP_1_IP:8003/health` from Laptop 2 first. Once it returns the expected JSON, open `http://localhost:5500`, enter `http://LAPTOP_1_IP:8003` in the API field, click Connect, select a trip and keep Run fresh inference checked. The UI also accepts `?api=http://LAPTOP_1_IP:8003` for prefilling.
 
-Example only: if Laptop 1's actual IP is 192.168.1.20, enter `http://192.168.1.20:8000`. The UI also accepts `http://localhost:5500/?api=http://192.168.1.20:8000` for prefilling. Replace example IP with the real one.
-
-Before opening the UI, open `http://LAPTOP_1_IP:8000/health` from Mahesh's browser. It must return `model_loaded: true` and the expected number of trips. This proves reachability, not full inference.
-
-During prediction, show the receiving API terminal on Laptop 1. The request must arrive from Mahesh's LAN IP, not just 127.0.0.1. Capture this and Mahesh's rendered route/metrics as demo evidence. Bundled Leaflet works without internet; background street tiles still need internet. Road and GPS geometry remain visible without tiles.
-
-Optional network smoke test from Mahesh's repository root (standard library only):
+Click Predict route. Confirm a successful POST appears in Laptop 1 logs from Laptop 2's address. Capture the receiving terminal and UI result. Localhost tests alone do not establish the physical two-laptop flow. All ten reserved trips must be selectable, not a hardcoded example.
 
 ```bash
-python scripts/smoke_test_api.py --api http://LAPTOP_1_IP:8000
+python scripts/smoke_test_api.py --api http://LAPTOP_1_IP:8003
 ```
 
-## Troubleshooting
+This optional standard-library test exercises all configured trips. Do not use reserved scores to change the trained model, features, thresholds or decoder.
 
-- Cannot reach health: confirm actual IP, same Wi-Fi, backend running with `--host 0.0.0.0`, and inbound TCP 8000 allowed on Laptop 1's private network. Campus Wi-Fi can isolate clients; use a shared hotspot if needed.
-- Health works but model not loaded: check saved model and pinned ML dependencies on Laptop 1; read terminal error.
-- UI shows code/file list: use the HTTP URL above, not an editor tab or the wrong served directory.
-- Prediction errors: retain the actual error and server logs; do not display made-up routes.
-- UI scores differ from the earlier five-model chart: API evaluation uses monotone route alignment on full trips, while the initial chart used nearest-reference labels on sampled points. Both remain geometric surrogates and are not directly interchangeable.
+## Network troubleshooting
+
+- Both devices need a reachable local network. Campus Wi-Fi may isolate devices; a shared phone hotspot is an alternative. Check the actual SSID on both devices and prevent unwanted automatic switching.
+- Localhost health works but remote health times out: check the current IP, server binding, Windows inbound rules and client isolation before changing code.
+- On a trusted personal hotspot, Windows can use a Private profile. Keep the campus network Public. A specific active Block rule can override an Allow rule; inspect the Python executable/profile before changing only the relevant rule. Keep the firewall enabled.
+- If an administrator creates a temporary inbound TCP 8003 rule for the demo, remove it afterward. Do not disable unrelated rules or the whole firewall.
+- Frozen checksum mismatch on Windows: LF checkout is enforced by `.gitattributes`. Compare against the manifest; restore the exact committed config bytes if needed. Do not change the manifest to hide a mismatch.
+- UI still points to 127.0.0.1: replace its API field with Laptop 1's actual IP and chosen port. The query parameter avoids stale stored addresses.
+- Basemap tiles need internet; Leaflet and road/GPS geometry are bundled/returned locally.
+
+## Evidence status
+
+Retained automatic checks and report screenshots are local HTTP/development evidence. A team-reported network success is distinct from a captured receiving-terminal screenshot. Include actual evidence of the final physical demonstration; never relabel local captures as remote ones.

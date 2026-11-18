@@ -1,80 +1,108 @@
 # PathSnap
 
-**Frozen final release: `pathsnap-monotone-v1`.** Default API, evaluation and decoded Folium maps use `artifacts/models/final_monotone_v1` with `artifacts/decoder_config.json`. [Final report results](docs/report/FINAL_RESULTS.md) · [Release manifest](artifacts/final_release.json) · [Final chart](results/final_results.png).
+GPS trajectory map matching using a trained candidate classifier and HMM/Viterbi route reconstruction. FastAPI performs inference and server-side evaluation; a separate HTML/CSS/JavaScript UI displays results using Leaflet.
 
-Selection evidence: [order-aware model improvement](outputs/model-improvement/20261118-120758/READ_FIRST.md). That verified candidate has now been promoted. Earlier sampled results and screenshots are historical, not current demo results.
+**Frozen release:** `pathsnap-monotone-v1` — [manifest](artifacts/final_release.json), [decoder settings](artifacts/decoder_config.json), [final results](docs/report/FINAL_RESULTS.md).
 
-## Run the two-laptop demo
+## Install
 
-See [Mahesh's exact Laptop 2 instructions](docs/TWO_LAPTOP_DEMO.md). Laptop 1 runs `python -m pathsnap.api.app --host 0.0.0.0 --port 8000`. Mahesh runs `python -m http.server 5500 --bind 127.0.0.1 --directory ui` from his clone and opens `http://localhost:5500`. In the API box he enters Laptop 1's LAN URL (not his own localhost). No ML dependencies or data are needed on his machine.
-
-## First-evaluation revision and evidence
-
-- [Complete ML notes and 40 viva questions with answers](docs/ML_NOTES.md)
-- [Simple work log](docs/WORK_LOG_SIMPLE.md)
-- [Team checklist](docs/TEAM_CHECKLIST.md)
-- [Read the measured findings first](outputs/evaluation_1130/READ_FIRST.md)
-- [Model comparison chart](outputs/evaluation_1130/02_model_comparison.png)
-- [Data audit chart](outputs/evaluation_1130/01_data_overview.png)
-- [Map disagreement close-ups](outputs/evaluation_1130/04_disagreement_closeups.png)
-
-Generated evidence is included in `outputs/evaluation_1130/` and `outputs/inspection/`. GitHub displays PNG images; download/open Folium HTML in a browser to interact with maps. Raw data and feature caches remain local. Published classifier metrics use approximate reference labels; HMM and distributed-demo results require separate verification.
-
-GPS map matching and route reconstruction for the PES University ML hackathon, 18 November 2026.
-
-## Start
+Run from the repository root. Use the recorded Python 3.14 environment where available; a Windows demo also loaded the release under Python 3.13. Keep pinned package versions when loading joblib models.
 
 ```bash
-git clone https://github.com/lakshya-noir/HackML.git
-cd HackML.
-python3 -m venv .venv
+python -m venv .venv
+# macOS/Linux
 source .venv/bin/activate
+# Windows PowerShell instead:
+# .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+```
+
+`requirements.txt` includes the pinned demo/ML dependencies. Laptop 2 only needs Python's standard library and `ui/`.
+
+## Data stays local
+
+Raw data, evaluator data, virtual environments and feature caches are excluded from Git. They are not required on Laptop 2.
+
+```bash
 python scripts/import_dataset.py '/path/to/Student folder.zip'
 python scripts/inventory.py
 ```
 
-Raw data stays local under `data/`. Each teammate imports the same organiser ZIP. Do not add evaluator data during development.
+For authorised final evaluation, extract the supplied evaluator ZIP locally so each trip's files are directly under:
 
-## Ownership
-
-- Lakshya + Codex: `pathsnap/data.py`, `pathsnap/features/`, `pathsnap/models/`, training scripts and saved inference artifacts.
-- Nakul + Claude Code: `pathsnap/decoder/`, `pathsnap/api/`, road-network routing and backend integration.
-- Member 3: `analysis/`, experiment execution, data quality checks, maps and recorded results in `results/`.
-- Member 4: `ui/`, `docs/report/`, README updates, two-laptop testing and submission evidence.
-
-Read `docs/CONTRACT.md` before implementing interfaces. Do not edit another owner's modules without coordinating. Commit working increments and integrate every 30 minutes.
-
-## Immediate priorities
-
-1. Verify data inventory and inspect a complete trip together.
-2. Establish observation-to-reference alignment: `.route` is a sequence of arc IDs, not observation-level labels.
-3. Agree on candidate generation and features; keep local arc IDs out of universal classifier labels.
-4. Train five distinct models using the same features and trip-grouped splits; retain configurations and actual results.
-5. Start a health endpoint and verify Laptop 2 can reach Laptop 1.
-
-## Milestones (IST)
-
-- 11:20: EDA, feature explanation, initial five-model results ready for 11:30 evaluation.
-- 12:15: Bayesian tuning underway; classifier and decoder integrated.
-- 13:00: Full two-laptop flow works on student-testing data.
-- 14:00: Feature freeze; report, repository and demo verification.
-- 14:30: Begin submission checks; submit by 15:00.
-
-## Submission
-
-Public GitHub repository with all source, experiment configurations/results, optimisation history, inference assets (within size constraints), Folium generation code/HTML, installation and deployment instructions. One consolidated PDF report with measured results and demonstration evidence. Never commit credentials or fabricate results.
-
-Decoder, API and UI are developed separately by the assigned owners.
-
-## ML experiments
-
-Candidate generation, surrogate reference alignment, five-model training and Bayesian tuning are now implemented. See `docs/ML_NOTES.md` for methodology, metric definitions, limitations and backend integration. Decoder, API and UI remain assigned to their owners.
-
-```bash
-python -m pip install -r requirements-ml.txt
-python scripts/train_models.py --max-observations 200
-python scripts/train_models.py --max-observations 200 --trials 12
+```text
+data/evaluator_test/TRIP_ID/TRIP_ID.track
+data/evaluator_test/TRIP_ID/TRIP_ID.nodes
+data/evaluator_test/TRIP_ID/TRIP_ID.arcs
+data/evaluator_test/TRIP_ID/TRIP_ID.route
 ```
 
-Results are saved under `results/`; feature caches under ignored `outputs/`. The initial selected and tuned artifacts are included under `artifacts/models/hist_gradient_boosting/` and `artifacts/models/tuned/`; other experimental artifacts stay local. Use the pinned ML dependencies when loading the saved model on Laptop 1.
+Avoid an extra nested `evaluator_test` directory. Track coordinates are longitude, latitude, timestamp. Road IDs are local to each trip; reference routes have no per-observation timestamps.
+
+## Two-laptop deployment
+
+Laptop 1 hosts the model, evaluator data and API:
+
+```bash
+python -m pathsnap.api.app --host 0.0.0.0 --port 8003 --trips-dir data/evaluator_test
+```
+
+For development select `--trips-dir data/student_test`. No retraining is required. Health must report `model_loaded: true`, release `pathsnap-monotone-v1`, the intended partition and ten trips.
+
+Laptop 2 serves the UI:
+
+```bash
+python -m http.server 5500 --bind 127.0.0.1 --directory ui
+```
+
+Open `http://localhost:5500`. Set the API field to `http://LAPTOP_1_LAN_IP:8003`, click **Connect**, select a trip and run **fresh inference**. Both laptops need a reachable network. Open `http://LAPTOP_1_LAN_IP:8003/health` from Laptop 2 first. Show receiving API logs during the demo. Basemap tiles need internet; bundled Leaflet and returned geometry do not.
+
+See [deployment and troubleshooting](docs/TWO_LAPTOP_DEMO.md). Port 8000 remains the application default; 8003 is the documented demo example. Match the port in the server command, firewall rule and UI.
+
+## Measured development results
+
+| Final metric | Classifier only | HMM/Viterbi |
+|---|---:|---:|
+| Point agreement | 87.48% | 91.95% |
+| Route F1 | 84.22% | 96.80% |
+| Continuity | 97.97% | 99.87% |
+| Mean route pieces | 17.7 | 1.6 |
+
+Equal-weight means across ten complete student-test trips (19,160 observations), using monotone geometric surrogate labels. Route F1 measures length-weighted arc-set overlap, not order. HMM point agreement improves on nine trips and declines on trip 7. Earlier five-model results used 2,000 sampled observations and nearest-reference labels; they are a separate experiment.
+
+Five families were compared: Logistic Regression, Gaussian NB, Decision Tree, Random Forest and Histogram Gradient Boosting. Twelve Optuna TPE trials tuned the initial CV winner. A later controlled label/coverage study selected the final model. Decoder settings were fixed, not separately tuned. Saved model variants and their training source are included.
+
+## Source and evidence
+
+| Location | Contents |
+|---|---|
+| `pathsnap/data.py`, `pathsnap/features/` | Raw loading, retrieval, nine features and original labels |
+| `pathsnap/models/` | Artifact loading and normalised candidate scoring |
+| `pathsnap/decoder/` | Directed graph, Dijkstra, HMM/Viterbi, route pieces and metrics |
+| `pathsnap/api/`, `ui/` | Complete backend and browser interface |
+| `scripts/` | Training, tuning, improvement, evaluation, checks and map/report generation |
+| `artifacts/` | Five baseline models, tuned/final weights, config and manifest |
+| `results/` | CV/tuning records, diagnostics, per-trip metrics and verification |
+| `analysis/maps/` | Interactive development Folium maps |
+| `outputs/evaluation_1130/`, `outputs/inspection/` | Historical data/feature/model evidence |
+| `outputs/model-improvement/20261118-120758/` | Controlled experiment and its model variants |
+| `docs/report/FINAL_RESULTS.md` | Frozen development results and metric definitions |
+
+[Submission coverage](docs/SUBMISSION.md) maps every required component. The technical report is submitted separately; internal checklists, viva notes and report authoring files stay local.
+
+## Verify and reproduce
+
+```bash
+python scripts/test_decoder.py
+python scripts/check_submission.py
+# With API/UI running and student-test selected on Laptop 1:
+python scripts/verify_demo.py --api http://127.0.0.1:8003 --expected-trips-dir student_test --data-dir data/student_test --release-manifest artifacts/final_release.json --output output/local-checks/api.json
+```
+
+Training/report commands and cache/study precautions are in [REPRODUCING.md](docs/REPRODUCING.md). Reproduce in a separate checkout to preserve retained records. Never overwrite the frozen release just to make a test pass.
+
+## Team and assistance
+
+Team: Lakshya, Nakul and Nikhil. [CONTRIBUTING.md](CONTRIBUTING.md) explains responsibilities and genuine contribution recording. Codex and Claude Code assisted implementation, debugging and documentation; actual experiments ran locally. Members remain responsible for reviewing and understanding the submission. Preserve authentic authorship; do not invent commits or results.
+
+Leaflet 1.9.4 is bundled under its [BSD 2-Clause license](ui/vendor/leaflet/LICENSE). Maps attribute OpenStreetMap. Reserved references never enter prediction or the evaluator UI.

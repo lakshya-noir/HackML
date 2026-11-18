@@ -59,6 +59,6 @@ Source: `results/decoder_summary_student_test.json`, `results/decoder_comparison
 | Classifier only | 0.8748 | 0.9207 | 0.7414 | 0.9973 | 0.8422 | 0.9797 | 17.7 |
 | Classifier + HMM/Viterbi | 0.9195 | 0.9619 | 0.9421 | 0.9971 | 0.9680 | 0.9987 | 1.6 |
 
-Final release `pathsnap-monotone-v1`; equal-weight trip means over all 19,160 student-test observations. HMM improves point agreement on nine trips but trip 00000007 declines. Route F1 improves on nine trips and remains equal on trip 7 (~0.977). Trip 77 is weakest (HMM ~0.763, classifier ~0.680). Candidate miss rate averages ~0.38%. Labels are geometric surrogates; route overlap ignores order and point macro F1 uses reference arc classes per trip.
+Final release `pathsnap-monotone-v1`; equal-weight trip means over all 19,160 student-test observations. HMM improves point agreement on nine trips but trip 00000007 declines. Route F1 improves on nine trips and decreases slightly on trip 7 (0.977250 to 0.976512). Trip 77 is weakest (HMM ~0.763, classifier ~0.680). Candidate miss rate averages ~0.38%. Labels are geometric surrogates; route overlap ignores order and point macro F1 uses reference arc classes per trip.
 
 Refreshed offline joint candidate/scoring/lattice/decoder pipeline: about 0.51s per trip on this machine, excluding loading, evaluation, network and UI. Both mode rows include this joint timing, not standalone classifier latency. API timings/hashes are in `results/api_verification_final.json`; authoritative report references are in `docs/report/FINAL_RESULTS.md`.

@@ -1,14 +1,3 @@
-numpy
-pandas
-scipy
-scikit-learn
-networkx
-optuna
-fastapi
-uvicorn
-folium
-streamlit
-requests
-matplotlib
-joblib
+# Complete pinned inference and experiment environment.
+-r requirements-demo.txt
 

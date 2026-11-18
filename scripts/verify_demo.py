@@ -5,6 +5,7 @@ from pathlib import Path
 import urllib.request
 import urllib.error
 import hashlib
+import math
 
 ap=argparse.ArgumentParser(description=__doc__)
 ap.add_argument('--api',default='http://127.0.0.1:8000')
@@ -14,6 +15,8 @@ ap.add_argument('--expected-model-dir')
 ap.add_argument('--experiment-report')
 ap.add_argument('--variant',default='monotone_more')
 ap.add_argument('--release-manifest')
+ap.add_argument('--expected-trips-dir',help='Expected partition directory name from API health')
+ap.add_argument('--data-dir',help='Optional local nodes/arcs for structural output checks; never reads route labels')
 a=ap.parse_args()
 def request(path,body=None):
     req=urllib.request.Request(a.api+path,data=json.dumps(body).encode() if body else None,
@@ -30,6 +33,8 @@ req=urllib.request.Request(a.api+'/predict',method='OPTIONS',headers={
 with urllib.request.urlopen(req) as response:
     assert response.status==200 and response.headers.get('Access-Control-Allow-Origin')=='*'
 health=request('/health'); assert health['model_loaded']
+if a.expected_trips_dir:
+    assert health['trips_dir']==a.expected_trips_dir,'Wrong trip partition selected'
 manifest=json.loads(Path(a.release_manifest).read_text()) if a.release_manifest else None
 if manifest:
     for key in ['release_id','model_sha256','decoder_config_sha256']:
@@ -41,6 +46,7 @@ expected_trips={r['trip_id']:r for r in expected['student_test'][a.variant]} if 
 trips=request('/trips')['trips']; assert len(trips)==10
 out={'scope':'local HTTP checks; not a browser render or physical two-laptop test',
      'api':a.api,'ui':a.ui,'model_loaded':True,'model_dir':health['model_dir'],
+     'trips_dir':health['trips_dir'],
      'ui_assets_and_cors':'passed','trips':[]}
 if manifest:
     out['release']=health['release']
@@ -53,6 +59,23 @@ for trip in trips:
         assert result['release']==health['release']
     assert len(result['observation_arc_ids'])==len(result['gps_lonlat'])==result['n_observations']
     assert result['route_geojson']['type']=='MultiLineString'
+    assert result['n_observations']==trip['n_observations']
+    for line in result['route_geojson']['coordinates']:
+        assert len(line)>=2
+        for point in line:
+            assert len(point)==2 and all(math.isfinite(v) for v in point)
+            assert -180<=point[0]<=180 and -90<=point[1]<=90
+    if a.data_dir:
+        directory=Path(a.data_dir)/trip['trip_id'];tid=trip['trip_id']
+        with (directory/f'{tid}.nodes').open() as stream:
+            nodes=[tuple(round(float(v),6) for v in line.split()) for line in stream if line.strip()]
+        with (directory/f'{tid}.arcs').open() as stream:
+            arcs=[tuple(map(int,line.split())) for line in stream if line.strip()]
+        assert all(v is None or isinstance(v,int) and 0<=v<len(arcs) for v in result['observation_arc_ids'])
+        assert all(isinstance(v,int) and 0<=v<len(arcs) for v in result['route_arc_ids'])
+        predicted_edges={(nodes[arcs[v][0]],nodes[arcs[v][1]]) for v in result['route_arc_ids']}
+        for line in result['route_geojson']['coordinates']:
+            assert all((tuple(p),tuple(q)) in predicted_edges for p,q in zip(line[:-1],line[1:])), 'Geometry shortcut outside predicted arcs'
     assert 'reference_route' not in result and 'reference_arc_ids' not in result
     if expected:
         record=expected_trips[trip['trip_id']]
@@ -77,6 +100,8 @@ assert cached['cached']
 fresh=request('/predict',{'trip_id':trips[-1]['trip_id'],'fresh':True})
 assert not fresh['cached'] and fresh['observation_arc_ids']==cached['observation_arc_ids']
 out['cache_and_fresh_consistency']='passed'
+if a.data_dir:
+    out['arc_ids_and_road_geometry']='passed for all trips; no reference labels read by client checker'
 Path(a.output).parent.mkdir(parents=True,exist_ok=True)
 Path(a.output).write_text(json.dumps(out,indent=2))
 print('10/10 fresh predictions, static assets, CORS and 404 check passed; evidence saved.')
