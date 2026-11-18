@@ -202,6 +202,7 @@ def run_prediction(trip_id):
 
 class PredictRequest(BaseModel):
     trip_id: str
+    fresh: bool = False
 
 
 @app.get("/health")
@@ -224,6 +225,9 @@ def trips():
 @app.post("/predict")
 def predict(req: PredictRequest):
     note(f"REQ    predict trip={req.trip_id}")
+    if req.fresh:
+        with S.lock:
+            S.cache.pop(req.trip_id.strip(), None)
     return run_prediction(req.trip_id.strip())
 
 

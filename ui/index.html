@@ -45,6 +45,7 @@
   <button class="secondary" id="connect">Connect</button>
   <select id="trip" disabled><option>— trips —</option></select>
   <button id="go" disabled>Predict route</button>
+  <label style="font-size:12px"><input type="checkbox" id="fresh" checked> Run fresh inference</label>
   <span id="status">not connected</span>
 </header>
 <main>
@@ -53,6 +54,7 @@
     <h2>Result</h2>
     <div id="summary" class="big"><div class="tile"><div class="l">Select a trip and press Predict</div></div></div>
     <h2>Metrics (computed on the API server)</h2>
+    <p id="method" style="font-size:12px;color:var(--muted)">Scores use approximate reference alignment. No reference roads are sent to this UI.</p>
     <table id="metrics"><thead><tr><th>Metric</th><th>HMM + Viterbi</th><th>Classifier only</th></tr></thead><tbody></tbody></table>
     <h2>Timing (server)</h2>
     <table id="timing"><tbody></tbody></table>
@@ -83,29 +85,36 @@ legend.onAdd = () => { const d = L.DomUtil.create("div", "legend"); d.innerHTML 
 legend.addTo(map);
 
 let API = "";
-try { $("api").value = localStorage.getItem("pathsnap_api") || "http://127.0.0.1:8000"; } catch (e) { $("api").value = "http://127.0.0.1:8000"; }
+const queryAPI = new URLSearchParams(location.search).get("api");
+try { $("api").value = queryAPI || localStorage.getItem("pathsnap_api") || "http://127.0.0.1:8000"; } catch (e) { $("api").value = queryAPI || "http://127.0.0.1:8000"; }
+let ready = false;
+function busy(value) {
+  $("connect").disabled = $("api").disabled = value;
+  $("trip").disabled = $("go").disabled = value || !ready;
+}
 
 function setStatus(msg, cls = "") { $("status").textContent = msg; $("status").className = cls; }
 
 async function call(path, opts) {
-  const r = await fetch(API + path, opts);
+  const r = await fetch(API + path, { ...opts, signal: AbortSignal.timeout(300000) });
   if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 200)}`);
   return r.json();
 }
 
 $("connect").onclick = async () => {
+  ready = false; busy(true);
   API = $("api").value.trim().replace(/\/+$/, "");
   try { localStorage.setItem("pathsnap_api", API); } catch (e) {}
   setStatus("connecting…");
   try {
     const h = await call("/health");
     const t = await call("/trips");
-    $("trip").innerHTML = t.trips.map(x =>
-      `<option value="${x.trip_id}">${x.trip_id} · ${x.n_observations} pts · ${(x.duration_s/60).toFixed(0)} min</option>`).join("");
-    $("trip").disabled = $("go").disabled = false;
+    $("trip").replaceChildren(...t.trips.map(x => new Option(`${x.trip_id} · ${x.n_observations} pts · ${(x.duration_s/60).toFixed(0)} min`, x.trip_id)));
+    ready = h.model_loaded && t.trips.length > 0;
     setStatus(`connected · ${t.trips.length} trips · model ${h.model_loaded ? "loaded" : "NOT loaded"}`, h.model_loaded ? "ok" : "err");
     refreshLog();
-  } catch (e) { setStatus("cannot reach API: " + e.message, "err"); }
+  } catch (e) { setStatus("cannot reach API: " + e.message + ". Use Laptop 1's LAN IP; check same Wi-Fi and port 8000.", "err"); }
+  finally { busy(false); }
 };
 
 const pct = (v) => v == null ? "—" : (100 * v).toFixed(1) + "%";
@@ -122,15 +131,15 @@ const ROWS = [
 
 $("go").onclick = async () => {
   const id = $("trip").value;
-  $("go").disabled = true; setStatus(`predicting trip ${id}…`);
+  busy(true); setStatus(`predicting trip ${id}…`);
   try {
     const t0 = performance.now();
     const d = await call("/predict", { method: "POST", headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ trip_id: id }) });
+                                        body: JSON.stringify({ trip_id: id, fresh: $("fresh").checked }) });
     draw(d);
     setStatus(`trip ${id} done in ${((performance.now() - t0) / 1000).toFixed(1)} s${d.cached ? " (cached)" : ""}`, "ok");
   } catch (e) { setStatus("prediction failed: " + e.message, "err"); }
-  $("go").disabled = false; refreshLog();
+  busy(false); refreshLog();
 };
 
 function draw(d) {
@@ -148,6 +157,7 @@ function draw(d) {
   map.fitBounds(L.latLngBounds(gps), { padding: [20, 20] });
 
   const m = d.metrics && d.metrics.hmm ? d.metrics : null, h = m ? m.hmm : {}, c = m ? m.classifier_only : {};
+  $("method").textContent = `Reference label method: ${d.metrics?.label_method || "unavailable"}. These are surrogate-label scores; route F1 measures length-weighted arc-set overlap, not route order.`;
   $("summary").innerHTML = `
     <div class="tile"><div class="v">${pct(h.point_accuracy)}</div><div class="l">Point accuracy (HMM)</div></div>
     <div class="tile"><div class="v">${pct(h.route_f1)}</div><div class="l">Route F1 (HMM)</div></div>

@@ -4,6 +4,14 @@ Updated 18 November 2026 before the 11:30 evaluation. This records work verified
 
 ## 1. Read first
 
+### Integration update before 11:30
+
+Nakul's `nakul-backend` branch has now been integrated into main. His decoder, FastAPI app and bundled Leaflet UI are present. The six synthetic decoder checks passed on Lakshya's machine, and HTTP smoke testing processed all ten student-test trips. See `docs/TWO_LAPTOP_DEMO.md` and `results/api_verification_local.json` for exact setup and the latest local verification. Earlier “not complete” statements below describe the ML-only stage; physical two-laptop/browser rendering and evaluator demonstration still need team confirmation.
+
+The UI now has connection readiness/error handling, fresh-inference requests, metric-label descriptions and an optional API URL query parameter. Fresh POST requests bypass previously computed responses; they execute actual inference. Health checks and successful local HTTP requests are not proof of Mahesh's LAN/browser connection.
+
+API evaluation uses monotone reference-route alignment on full trips, while the initial five-model comparison below used nearest-reference labels on sampled points. The API macro F1 includes reference arc classes; the initial comparison namespaces arc classes across trips. Do not directly compare these numbers. Route F1 is length-weighted arc-set overlap, not an order-sensitive sequence metric. The branch's earlier evaluation files may differ from current host results; use the dated local verification evidence and retain provenance.
+
 We built the data and classifier part of a system that recovers likely roads from noisy GPS. Completed work includes raw loading, candidate generation, nine features, approximate labels, five-model comparison, trip-grouped validation, Bayesian tuning, saved-model scoring, Folium maps, all-trip audits and readable charts.
 
 The main limitation: reference routes have no per-point timestamps. Our labels select the geometrically closest supplied reference road. Accuracy measures agreement with these **surrogate labels**, not independently verified physical ground truth.

@@ -44,7 +44,7 @@ Current evidence: baseline Top-1 85.85%; tuned 85.70%; candidate miss rate 0.2%,
 ## Start now: 10:36–10:45 — remove coordination blockers
 
 - [ ] S1 — ALL: assign physical Laptop 1 and Laptop 2; record IP, OS, Python version, owners and network below. Done when everyone knows which machines will demonstrate.
-- [ ] S2 — N: confirm receipt of current candidate/model code and both artifacts on Laptop 1; install compatible dependencies. Confirm feature schema and model loading work on that machine.
+- [x] S2 — L/N: backend integrated and model loaded successfully on Lakshya's physical laptop at approximately 11:26. Compatible ML environment used; ten local HTTP predictions succeeded. Mahesh's network check remains S4.
   - Evidence: N 10:50: candidate/model code + tuned artifact load and score in Nakul's dev environment (sklearn 1.9.1). Still to repeat on physical Laptop 1.
 - [ ] S3 — L + N: read `docs/CONTRACT.md` together; agree on candidate scores, decoder output, coordinate order, units and API fields. Record any agreed changes.
 - [ ] S4 — N + U: start real `/health` endpoint on Laptop 1, bound to `0.0.0.0:8000`; call it from Laptop 2 over the actual network. Save response and IP. Depends on S1, not on a completed decoder.
@@ -77,7 +77,7 @@ These lanes run concurrently. Within each lane, follow the listed order.
 - [x] M1 — L: plain-language feature/label/metric explanation in `outputs/evaluation_1130/READ_FIRST.md`; personal understanding still requires reading/rehearsal.
 - [x] M2 — L/D: actual CV, student-test Top-1/arc F1, conditional log loss and tuning plots in `outputs/evaluation_1130/`; source definitions and sampling labelled.
 - [x] M3 — L/D: additional train/test binary F1 and test macro precision/recall saved in `model_diagnostics.csv`; configuration/timing evidence retained in original results; interpretation in READ_FIRST. No artificial epoch curves.
-- [ ] M4 — L: audit the pinned environment/setup instructions on the model host. Document scoring time separately from candidate generation and end-to-end API latency.
+- [x] M4 — L: pinned ML artifacts loaded on Lakshya's host; runtime dependencies installed; startup tested. API exposes component timing separately from prediction/evaluation. Setup instructions in `docs/TWO_LAPTOP_DEMO.md`.
 
 ### Decoder lane — N
 
@@ -187,7 +187,9 @@ These are future tasks. Publishing the checklist does not authorise final submis
 
 ## Next four actions
 
-1. L + D: D3–D4 — create development maps and inspect surrogate alignment; L handles script gaps while D records findings.
-2. N: S2–S4 — confirm model loading and start reachable health endpoint; then H1–H3.
-3. D: D1–D2 — finish data-quality/connectivity evidence while map generation is prepared.
-4. U: S1/S5 — confirm demo machines/network, start report, and test health endpoint with N as soon as available.
+1. Mahesh: follow `docs/TWO_LAPTOP_DEMO.md`, connect UI on his laptop to Lakshya's actual Wi-Fi IP (10.0.9.59 at 11:27; may change), then predict trip 00000052 with fresh inference.
+2. Lakshya: show the receiving API terminal; record Mahesh's LAN client IP to close S4/G1 only after a genuine two-machine test.
+3. Nikhil + Lakshya: review data/model charts and viva guide; prepare first-evaluation explanation.
+4. Mahesh: collect browser screenshot and receiving terminal logs for report; retain real results and distinguish monotone API labels from the earlier nearest-reference experiment.
+
+Integration verification update (~11:27): backend branch integrated; all six synthetic checks and local all-ten-trip smoke requests passed. UI served on 127.0.0.1:5500; API bound to 0.0.0.0:8000 with tuned artifact loaded. Browser automation host unavailable, so visual rendering and cross-laptop checks remain unverified; do not close S4/G1 based on local tests. No secrets or runtime logs are committed.

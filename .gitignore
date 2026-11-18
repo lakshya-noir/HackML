@@ -8,6 +8,7 @@ venv/
 !.env.example
 .ipynb_checkpoints/
 .pytest_cache/
+logs/
 data/
 *.zip
 artifacts/models/*
