@@ -2,13 +2,15 @@
 
 Laptop 1 hosts data, trained model and FastAPI. Laptop 2 (Mahesh) serves the static evaluator UI. Both must join the same reachable network. A local one-machine check does not prove this network requirement.
 
+Final default: **pathsnap-monotone-v1**, `artifacts/models/final_monotone_v1` plus `artifacts/decoder_config.json`. No environment overrides needed; clear any earlier `PATHSNAP_MODEL_DIR` override. `/health` must report this release and `model_loaded: true`, with hashes matching `artifacts/final_release.json`. Pull/restart the backend to adopt it; browser refresh alone does not replace a running API. The UI shows the release after prediction.
+
 ## Laptop 1 — Lakshya or Nakul
 
 From the repository root, with local data imported:
 
 ```bash
 git pull --ff-only origin main
-python -m pip install -r requirements-ml.txt fastapi uvicorn
+python -m pip install -r requirements-demo.txt
 python -m pathsnap.api.app --host 0.0.0.0 --port 8000
 ```
 

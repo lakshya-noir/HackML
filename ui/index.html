@@ -53,6 +53,7 @@
   <aside>
     <h2>Result</h2>
     <div id="summary" class="big"><div class="tile"><div class="l">Select a trip and press Predict</div></div></div>
+    <p id="release" style="font-size:12px;color:var(--muted)"></p>
     <h2>Metrics (computed on the API server)</h2>
     <p id="method" style="font-size:12px;color:var(--muted)">Scores use approximate reference alignment. No reference roads are sent to this UI.</p>
     <table id="metrics"><thead><tr><th>Metric</th><th>HMM + Viterbi</th><th>Classifier only</th></tr></thead><tbody></tbody></table>
@@ -143,6 +144,7 @@ $("go").onclick = async () => {
 };
 
 function draw(d) {
+  $("release").textContent = d.release ? `Release: ${d.release.release_id} · model ${d.release.model_sha256.slice(0,12)}` : 'Release identity unavailable';
   Object.values(layers).forEach(l => l.clearLayers());
   // API geometry is GeoJSON (lon, lat); L.geoJSON swaps to Leaflet's (lat, lon)
   L.geoJSON(d.candidate_roads_geojson, { style: { color: "#9ca3af", weight: 2, opacity: .6 } }).addTo(layers["Candidate roads"]);

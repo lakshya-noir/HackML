@@ -1,6 +1,8 @@
 # PathSnap
 
-Verified candidate experiment: [order-aware labels and increased training coverage](outputs/model-improvement/20261118-120758/READ_FIRST.md). Includes grouped-CV comparison, full-trip results, three artifacts and API verification. The default demo model remains `artifacts/models/tuned`; the candidate is versioned separately.
+**Frozen final release: `pathsnap-monotone-v1`.** Default API, evaluation and decoded Folium maps use `artifacts/models/final_monotone_v1` with `artifacts/decoder_config.json`. [Final report results](docs/report/FINAL_RESULTS.md) · [Release manifest](artifacts/final_release.json) · [Final chart](results/final_results.png).
+
+Selection evidence: [order-aware model improvement](outputs/model-improvement/20261118-120758/READ_FIRST.md). That verified candidate has now been promoted. Earlier sampled results and screenshots are historical, not current demo results.
 
 ## Run the two-laptop demo
 

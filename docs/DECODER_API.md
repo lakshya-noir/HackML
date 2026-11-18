@@ -28,7 +28,7 @@ python scripts/smoke_test_api.py --api http://<laptop-1-ip>:8000
 ```
 
 Windows firewall: allow Python on private networks when prompted, or the UI cannot reach port 8000.
-Environment overrides: `PATHSNAP_TRIPS_DIR`, `PATHSNAP_MODEL_DIR` (default `artifacts/models/tuned`), `PATHSNAP_DECODER_CONFIG` (default `artifacts/decoder_config.json`; defaults in `DecoderConfig` if absent).
+Environment overrides: `PATHSNAP_TRIPS_DIR`, `PATHSNAP_MODEL_DIR` (final default `artifacts/models/final_monotone_v1`), `PATHSNAP_DECODER_CONFIG` (default `artifacts/decoder_config.json`). Shared defaults are in `pathsnap/release.py`. The default pair must match `artifacts/final_release.json`; missing config or checksum mismatch fails model readiness. Custom overrides are marked custom releases.
 
 ## HMM design (report section 5)
 
@@ -56,9 +56,9 @@ Source: `results/decoder_summary_student_test.json`, `results/decoder_comparison
 
 | Mode | Point acc | Point macro F1 | Route precision | Route recall | Route F1 | Continuity | Mean pieces |
 |---|---|---|---|---|---|---|---|
-| Classifier only | 0.8696 | 0.9091 | 0.7233 | 0.9970 | 0.8300 | 0.9737 | 21.6 |
-| Classifier + HMM/Viterbi | 0.9236 | 0.9483 | 0.9420 | 0.9973 | 0.9680 | 0.9987 | 1.6 |
+| Classifier only | 0.8748 | 0.9207 | 0.7414 | 0.9973 | 0.8422 | 0.9797 | 17.7 |
+| Classifier + HMM/Viterbi | 0.9195 | 0.9619 | 0.9421 | 0.9971 | 0.9680 | 0.9987 | 1.6 |
 
-HMM improved point accuracy on all 10 trips. Route F1 improved on 9 trips; trip 00000007 was equal at 0.977. The weakest trip is 00000077 (0.763), where the classifier-only accuracy is also lowest (0.679), so the HMM cannot recover from consistently low classifier scores on parallel roads. The decoder cannot recover from candidate misses (0.39%).
+Final release `pathsnap-monotone-v1`; equal-weight trip means over all 19,160 student-test observations. HMM improves point agreement on nine trips but trip 00000007 declines. Route F1 improves on nine trips and remains equal on trip 7 (~0.977). Trip 77 is weakest (HMM ~0.763, classifier ~0.680). Candidate miss rate averages ~0.38%. Labels are geometric surrogates; route overlap ignores order and point macro F1 uses reference arc classes per trip.
 
-Mean end-to-end prediction time is about 1.3 s per trip. Candidate generation is the largest component.
+Refreshed offline joint candidate/scoring/lattice/decoder pipeline: about 0.51s per trip on this machine, excluding loading, evaluation, network and UI. Both mode rows include this joint timing, not standalone classifier latency. API timings/hashes are in `results/api_verification_final.json`; authoritative report references are in `docs/report/FINAL_RESULTS.md`.

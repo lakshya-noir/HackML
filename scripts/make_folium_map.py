@@ -25,6 +25,7 @@ from pathsnap.decoder import DecoderConfig, Lattice, classifier_only, decode
 from pathsnap.decoder.evaluation import evaluate, monotone_alignment
 from pathsnap.features.candidates import generate_candidates
 from pathsnap.models.predict import score_candidates
+from pathsnap.release import DEFAULT_MODEL_DIR, DEFAULT_DECODER_CONFIG, release_identity
 
 OUT = ROOT / "analysis" / "maps"
 
@@ -89,6 +90,7 @@ def make(partition, tid, model_dir, cfg):
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / f"{partition}_{tid}.html"
     m.save(str(path))
+    path.write_text('\n'.join(line.rstrip() for line in path.read_text().splitlines())+'\n')
     print(f"saved {path.relative_to(ROOT)} | HMM acc {eh['point_accuracy']:.3f} vs classifier {ek['point_accuracy']:.3f}")
 
 
@@ -97,10 +99,11 @@ if __name__ == "__main__":
     ap.add_argument("--trip")
     ap.add_argument("--partition", default="student_test", choices=["student_test", "train"])
     ap.add_argument("--all", action="store_true")
-    ap.add_argument("--model-dir", default=str(ROOT / "artifacts/models/tuned"))
+    ap.add_argument("--model-dir", default=str(DEFAULT_MODEL_DIR))
     a = ap.parse_args()
-    cfgp = ROOT / "artifacts/decoder_config.json"
-    cfg = DecoderConfig.from_dict(json.loads(cfgp.read_text())) if cfgp.exists() else DecoderConfig()
+    cfgp = DEFAULT_DECODER_CONFIG
+    release_identity(a.model_dir, cfgp)
+    cfg = DecoderConfig.from_dict(json.loads(cfgp.read_text()))
     trips = sorted(p.name for p in (ROOT / "data" / a.partition).iterdir()) if a.all else [a.trip]
     for tid in trips:
         make(a.partition, tid, a.model_dir, cfg)

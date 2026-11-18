@@ -39,10 +39,11 @@ from pathsnap.decoder import DecoderConfig, Lattice, classifier_only, decode  # 
 from pathsnap.decoder.evaluation import evaluate, monotone_alignment  # noqa: E402
 from pathsnap.features.candidates import generate_candidates  # noqa: E402
 from pathsnap.models.predict import load_artifact, score_candidates  # noqa: E402
+from pathsnap.release import DEFAULT_MODEL_DIR, DEFAULT_DECODER_CONFIG, release_identity
 
 TRIPS_DIR = Path(os.environ.get("PATHSNAP_TRIPS_DIR", ROOT / "data" / "student_test"))
-MODEL_DIR = Path(os.environ.get("PATHSNAP_MODEL_DIR", ROOT / "artifacts" / "models" / "tuned"))
-DECODER_CONFIG = Path(os.environ.get("PATHSNAP_DECODER_CONFIG", ROOT / "artifacts" / "decoder_config.json"))
+MODEL_DIR = Path(os.environ.get("PATHSNAP_MODEL_DIR", DEFAULT_MODEL_DIR))
+DECODER_CONFIG = Path(os.environ.get("PATHSNAP_DECODER_CONFIG", DEFAULT_DECODER_CONFIG))
 LOG_DIR = ROOT / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
@@ -64,6 +65,7 @@ class State:
     trips_dir = TRIPS_DIR
     model_ok = False
     model_error = None
+    release = {}
     cfg = DecoderConfig()
     cache = OrderedDict()
     lock = threading.Lock()
@@ -81,11 +83,11 @@ def list_trip_ids():
 def load_assets():
     try:
         load_artifact(str(MODEL_DIR))
+        S.cfg = DecoderConfig.from_dict(json.loads(DECODER_CONFIG.read_text()))
+        S.release = release_identity(MODEL_DIR, DECODER_CONFIG)
         S.model_ok, S.model_error = True, None
     except Exception as e:  # noqa: BLE001
         S.model_ok, S.model_error = False, f"{type(e).__name__}: {e}"
-    if DECODER_CONFIG.exists():
-        S.cfg = DecoderConfig.from_dict(json.loads(DECODER_CONFIG.read_text()))
     S.cache.clear()
     note(f"MODEL  {MODEL_DIR} -> {'loaded' if S.model_ok else 'NOT LOADED: ' + str(S.model_error)}")
     note(f"HMM    {S.cfg.to_dict()}")
@@ -172,6 +174,7 @@ def run_prediction(trip_id):
 
     out = {
         "trip_id": trip_id,
+        "release": S.release,
         "model": f"{MODEL_DIR.name} (HistGradientBoosting) + HMM/Viterbi",
         "n_observations": int(len(trip.track)),
         "observation_arc_ids": hmm["observation_arc_ids"],
@@ -208,6 +211,7 @@ class PredictRequest(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok", "model_loaded": S.model_ok, "model_dir": str(MODEL_DIR),
+            "release": S.release,
             "model_error": S.model_error, "decoder_config": S.cfg.to_dict(),
             "trips_dir": S.trips_dir.name, "n_trips": len(list_trip_ids()),
             "time": time.strftime("%Y-%m-%d %H:%M:%S")}

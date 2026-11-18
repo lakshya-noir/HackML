@@ -129,7 +129,7 @@ First-evaluation feedback: pending.
   - Evidence: definitions in `docs/DECODER_API.md` and inside `results/decoder_summary_student_test.json`; per-trip pipeline time recorded (mean 1.3 s).
 - [ ] V3 — D: compare where decoding helps, hurts or fails using maps, metrics and concrete trip examples. After V1–V2.
 - [ ] V4 — L: review whether 200 points per trip is sufficient; if time allows, run a versioned larger-data experiment and full student-test evaluation. Clearly distinguish initial sampled and later full-trip results; preserve both.
-- [ ] V5 — L + N: freeze the development model, feature schema and decoder configuration using permitted development evidence. Record artifact/version and all selected parameters. Retrain after feature/label changes before freezing.
+- [x] V5 — L: froze `pathsnap-monotone-v1`, final monotone model, feature schema and explicit `artifacts/decoder_config.json`. Manifest records hashes/provenance. Main API restarted and all ten fresh predictions matched final offline results; evidence `results/api_verification_final.json`. Decoder values retained rather than newly tuned.
 - [ ] V6 — N + U: verify full development UI/API flow across all ten student-test trips, including slow/long trips; measure complete latency. No cached hardcoded predictions as substitutes for inference.
 - [ ] G2 — ALL: confirm all development trips work and the two machines can restart and reconnect. After V5–V6.
 
@@ -144,7 +144,7 @@ Evaluator partition: do not train, tune, choose thresholds, or develop against e
 - [ ] R5 — U + N: HMM section explains hidden states, emissions, transitions, Viterbi, missing candidates, GPS gaps/disconnections and classifier-only versus decoded metrics/maps.
 - [ ] R6 — U: add final Folium screenshot with clear layers/legend and ensure interactive HTML or reproducible generation code is included. Reference-route layers belong in development analysis, not evaluator UI.
 - [ ] R7 — U + N: capture working UI and actual successful API requests/logs on Laptop 1. Include screenshots in deployment/report section.
-- [ ] R8 — L + N: document exact install/start commands, model/config paths, network URL, supported Python/package versions and required local dataset layout. Check README matches final implementation.
+- [x] R8 — L: final defaults and startup documented in README, `docs/TWO_LAPTOP_DEMO.md`, `requirements-demo.txt`, release manifest and `docs/report/FINAL_RESULTS.md`. Main API startup and all-trip parity verified locally; receiving-laptop network verification remains separate.
 - [ ] R9 — ALL: verify each reported metric/figure traces to an actual result file and code. Remove placeholder/fabricated claims. Describe AI assistance accurately if required by event policy.
 - [ ] R10 — U: export one consolidated report PDF; open it and inspect every page for clipped plots, missing figures, illegible labels and broken tables.
 
@@ -178,6 +178,8 @@ These are future tasks. Publishing the checklist does not authorise final submis
 - [ ] X5 — ALL → U: final source/artifact inventory, deployment screenshots and viva explanations; U verifies complete report/submission package.
 
 ## Status log
+
+- Final promotion (~12:25): default model/config frozen and main API restarted with `pathsnap-monotone-v1`. Offline CSV/summary, final report source, chart and decoded Folium maps refreshed. API parity verified on all ten full student-test trips. Current report metrics supersede earlier decoder summary; historical five-model sample results retain their separate definitions. Cross-laptop setup and final PDF still pending verification.
 
 - 12:14 candidate update: controlled model experiment completed and verified through a separate FastAPI instance on port 8001. All ten fresh predictions matched offline classifier/HMM metrics; CORS/assets/errors/cache checks passed. Evidence under `outputs/model-improvement/20261118-120758/`. Original live model unchanged; default-model/decoder freeze V5 and physical two-laptop proof remain pending. The larger-training experiment covers V4's optional increase in sampled training coverage; it is not full-data retraining.
 

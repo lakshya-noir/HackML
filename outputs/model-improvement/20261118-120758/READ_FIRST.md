@@ -1,5 +1,7 @@
 # Controlled model improvement — 12:07 run
 
+**Later update:** this candidate has now been promoted to release `pathsnap-monotone-v1`, default model `artifacts/models/final_monotone_v1`. Historical statements below describe the experiment and temporary-server stage. Use `docs/report/FINAL_RESULTS.md` and `results/api_verification_final.json` for current default results. The original model remains preserved, but is no longer the default.
+
 Completed in about 71 seconds; current live model was not replaced. No evaluator data used.
 
 We tested three versions with identical feature/candidate definitions, tuned classifier hyperparameters and default HMM configuration:

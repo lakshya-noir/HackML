@@ -12,7 +12,7 @@
     "00000077",
     "00000091"
   ],
-  "model_dir": "tuned",
+  "model_dir": "final_monotone_v1",
   "decoder_config": {
     "sigma_m": 10.0,
     "beta_m": 5.0,
@@ -25,6 +25,13 @@
     "search_cap_m": 15000.0
   },
   "label_method": "monotone route alignment (pathsnap/decoder/evaluation.py)",
+  "release": {
+    "model_sha256": "457a1520c1d9e9da2297a946d1d588f8a564dc7ef6c384240bff8bba83e1b3dd",
+    "decoder_config_sha256": "fba4744deb30176013f6b226c61c96bf6892d7c3599252a5791293968e94f4fc",
+    "release_id": "pathsnap-monotone-v1"
+  },
+  "aggregation": "unweighted mean over trip-level metrics",
+  "observations": 19160,
   "metric_definitions": {
     "point_accuracy": "share of observations whose predicted arc equals the monotone-aligned reference arc (observation Top-1)",
     "point_macro_f1": "macro F1 over reference arc IDs at observation level",
@@ -36,33 +43,33 @@
   "means": {
     "classifier_only": {
       "n_obs": 1916.0,
-      "pipeline_s": 1.325,
+      "pipeline_s": 0.507,
       "hmm_break_steps": 0.0,
-      "point_accuracy": 0.8696,
-      "point_macro_f1": 0.9091,
-      "route_precision": 0.7233,
-      "route_recall": 0.997,
-      "route_f1": 0.83,
-      "route_continuity": 0.9737,
-      "route_pieces": 21.6,
-      "adjacency_rate": 0.76,
+      "point_accuracy": 0.8748,
+      "point_macro_f1": 0.9207,
+      "route_precision": 0.7414,
+      "route_recall": 0.9973,
+      "route_f1": 0.8422,
+      "route_continuity": 0.9797,
+      "route_pieces": 17.7,
+      "adjacency_rate": 0.784,
       "unmatched_observations": 0.0,
-      "candidate_miss_rate": 0.0039
+      "candidate_miss_rate": 0.0038
     },
     "hmm_viterbi": {
       "n_obs": 1916.0,
-      "pipeline_s": 1.325,
+      "pipeline_s": 0.507,
       "hmm_break_steps": 0.0,
-      "point_accuracy": 0.9236,
-      "point_macro_f1": 0.9483,
-      "route_precision": 0.942,
-      "route_recall": 0.9973,
+      "point_accuracy": 0.9195,
+      "point_macro_f1": 0.9619,
+      "route_precision": 0.9421,
+      "route_recall": 0.9971,
       "route_f1": 0.968,
       "route_continuity": 0.9987,
       "route_pieces": 1.6,
-      "adjacency_rate": 0.9016,
+      "adjacency_rate": 0.9076,
       "unmatched_observations": 0.0,
-      "candidate_miss_rate": 0.0039
+      "candidate_miss_rate": 0.0038
     }
   }
 }

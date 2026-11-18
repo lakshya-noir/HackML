@@ -1,8 +1,16 @@
 # PathSnap: ML implementation, results and viva guide
 
-Updated 18 November 2026 before the 11:30 evaluation. This records work verified on Lakshya's machine. It does not claim Nakul's decoder/API or the distributed demo is complete.
+Updated 18 November 2026 after final-model promotion. **Current release: `pathsnap-monotone-v1`; authoritative final results: [FINAL_RESULTS.md](report/FINAL_RESULTS.md).** This guide retains earlier experiments chronologically; old model-default statements below describe those earlier stages. The restarted main API is verified. Physical two-laptop deployment remains a separate check.
 
 ## 1. Read first
+
+### Authoritative final release (supersedes earlier defaults)
+
+The main API now loads `artifacts/models/final_monotone_v1` and explicit `artifacts/decoder_config.json`. Release `pathsnap-monotone-v1` is recorded in `artifacts/final_release.json` with model/config SHA-256 checksums. It is the verified larger monotone-label candidate, using fixed decoder defaults (not separately tuned). The API was restarted to clear both model and response caches. Its `/health` and each prediction identify the release; the UI displays the release and model hash prefix.
+
+Fresh predictions for all ten full student-test trips passed. Offline results and API metrics agree within rounding and share the frozen hashes. Final equal-trip means: classifier Top-1 **87.48%**, HMM Top-1 **91.95%**, HMM arc macro F1 **96.19%**, HMM route F1 **96.80%**, HMM continuity **99.87%**. These use monotone geometric surrogate labels and all 19,160 observations. HMM improves point agreement on nine trips and hurts trip 7. Use `docs/report/FINAL_RESULTS.md`, `results/decoder_summary_student_test.json`, `results/decoder_comparison_student_test.csv`, `results/api_verification_final.json` and `results/final_results.png` for the report. The ten student-test Folium maps in `analysis/maps/` were regenerated with this model/config.
+
+Viva update: “We froze the larger monotone-label model and documented decoder settings, restarted the server, and checked that real API metrics match offline evaluation for all ten trips. Earlier five-model/tuning experiments remain separate historical evidence.” The consolidated PDF, current screenshots and actual cross-laptop demo still need their own verification.
 
 ### Integration update before 11:30
 

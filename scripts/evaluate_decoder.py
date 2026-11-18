@@ -16,13 +16,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-import pandas as pd
+import csv
+import numpy as np
 
 from pathsnap.data import load_reference, load_trip
 from pathsnap.decoder import DecoderConfig, Lattice, classifier_only, decode
 from pathsnap.decoder.evaluation import evaluate, monotone_alignment
 from pathsnap.features.candidates import generate_candidates
 from pathsnap.models.predict import score_candidates
+from pathsnap.release import DEFAULT_MODEL_DIR, DEFAULT_DECODER_CONFIG, release_identity
 
 DEFS = {
     "point_accuracy": "share of observations whose predicted arc equals the monotone-aligned reference arc (observation Top-1)",
@@ -35,11 +37,13 @@ DEFS = {
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--partition", default="student_test", choices=["student_test", "train"])
-ap.add_argument("--model-dir", default=str(ROOT / "artifacts/models/tuned"))
-ap.add_argument("--config", default=str(ROOT / "artifacts/decoder_config.json"))
+ap.add_argument("--model-dir", default=str(DEFAULT_MODEL_DIR))
+ap.add_argument("--config", default=str(DEFAULT_DECODER_CONFIG))
+ap.add_argument("--output-dir", default=str(ROOT / 'results'))
 ap.add_argument("--limit", type=int, default=0)
 a = ap.parse_args()
-cfg = DecoderConfig.from_dict(json.loads(Path(a.config).read_text())) if Path(a.config).exists() else DecoderConfig()
+cfg = DecoderConfig.from_dict(json.loads(Path(a.config).read_text()))
+identity = release_identity(a.model_dir, a.config)
 pdir = ROOT / "data" / a.partition
 trips = sorted(p.name for p in pdir.iterdir() if p.is_dir())[: a.limit or None]
 rows = []
@@ -60,13 +64,16 @@ for tid in trips:
     r0, r1 = rows[-2], rows[-1]
     print(f"{tid}: acc {r0['point_accuracy']:.3f} -> {r1['point_accuracy']:.3f} | route F1 {r0['route_f1']:.3f} -> "
           f"{r1['route_f1']:.3f} | pieces {r0['route_pieces']} -> {r1['route_pieces']} | {secs:.1f}s", flush=True)
-df = pd.DataFrame(rows)
-out = ROOT / "results"
-df.to_csv(out / f"decoder_comparison_{a.partition}.csv", index=False)
-summ = df.drop(columns="trip_id").groupby("mode").mean(numeric_only=True).round(4)
+out = Path(a.output_dir); out.mkdir(parents=True, exist_ok=True)
+with (out / f"decoder_comparison_{a.partition}.csv").open('w', newline='') as stream:
+    writer = csv.DictWriter(stream, fieldnames=list(rows[0]), lineterminator='\n'); writer.writeheader(); writer.writerows(rows)
+keys = [k for k in rows[0] if k not in ('trip_id','mode')]
+summ = {mode:{key:round(float(np.mean([r[key] for r in rows if r['mode']==mode])),4)
+              for key in keys} for mode in ('classifier_only','hmm_viterbi')}
 json.dump({"partition": a.partition, "trips": trips, "model_dir": Path(a.model_dir).name,
            "decoder_config": cfg.to_dict(), "label_method": "monotone route alignment (pathsnap/decoder/evaluation.py)",
-           "metric_definitions": DEFS, "means": summ.to_dict(orient="index")},
+           "release": identity, "aggregation": "unweighted mean over trip-level metrics",
+           "observations": sum(r['n_obs'] for r in rows if r['mode']=='hmm_viterbi'),
+           "metric_definitions": DEFS, "means": summ},
           open(out / f"decoder_summary_{a.partition}.json", "w"), indent=2)
-print(summ[["point_accuracy", "point_macro_f1", "route_precision", "route_recall", "route_f1",
-            "route_continuity", "route_pieces", "candidate_miss_rate", "pipeline_s"]].to_string())
+print(json.dumps(summ,indent=2))
