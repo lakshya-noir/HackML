@@ -1,0 +1,48 @@
+# PathSnap
+
+GPS map matching and route reconstruction for the PES University ML hackathon, 18 November 2026.
+
+## Start
+
+```bash
+git clone https://github.com/lakshya-noir/HackML.git
+cd HackML
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python scripts/import_dataset.py '/path/to/Student folder.zip'
+python scripts/inventory.py
+```
+
+Raw data stays local under `data/`. Each teammate imports the same organiser ZIP. Do not add evaluator data during development.
+
+## Ownership
+
+- Lakshya + Codex: `pathsnap/data.py`, `pathsnap/features/`, `pathsnap/models/`, training scripts and saved inference artifacts.
+- Nakul + Claude Code: `pathsnap/decoder/`, `pathsnap/api/`, road-network routing and backend integration.
+- Member 3: `analysis/`, experiment execution, data quality checks, maps and recorded results in `results/`.
+- Member 4: `ui/`, `docs/report/`, README updates, two-laptop testing and submission evidence.
+
+Read `docs/CONTRACT.md` before implementing interfaces. Do not edit another owner's modules without coordinating. Commit working increments and integrate every 30 minutes.
+
+## Immediate priorities
+
+1. Verify data inventory and inspect a complete trip together.
+2. Establish observation-to-reference alignment: `.route` is a sequence of arc IDs, not observation-level labels.
+3. Agree on candidate generation and features; keep local arc IDs out of universal classifier labels.
+4. Train five distinct models using the same features and trip-grouped splits; retain configurations and actual results.
+5. Start a health endpoint and verify Laptop 2 can reach Laptop 1.
+
+## Milestones (IST)
+
+- 11:20: EDA, feature explanation, initial five-model results ready for 11:30 evaluation.
+- 12:15: Bayesian tuning underway; classifier and decoder integrated.
+- 13:00: Full two-laptop flow works on student-testing data.
+- 14:00: Feature freeze; report, repository and demo verification.
+- 14:30: Begin submission checks; submit by 15:00.
+
+## Submission
+
+Public GitHub repository with all source, experiment configurations/results, optimisation history, inference assets (within size constraints), Folium generation code/HTML, installation and deployment instructions. One consolidated PDF report with measured results and demonstration evidence. Never commit credentials or fabricate results.
+
+This initial scaffold does not yet implement training, decoding, API or UI.
