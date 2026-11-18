@@ -1,5 +1,17 @@
 # PathSnap
 
+## First-evaluation revision and evidence
+
+- [Complete ML notes and 40 viva questions with answers](docs/ML_NOTES.md)
+- [Simple work log](docs/WORK_LOG_SIMPLE.md)
+- [Team checklist](docs/TEAM_CHECKLIST.md)
+- [Read the measured findings first](outputs/evaluation_1130/READ_FIRST.md)
+- [Model comparison chart](outputs/evaluation_1130/02_model_comparison.png)
+- [Data audit chart](outputs/evaluation_1130/01_data_overview.png)
+- [Map disagreement close-ups](outputs/evaluation_1130/04_disagreement_closeups.png)
+
+Generated evidence is included in `outputs/evaluation_1130/` and `outputs/inspection/`. GitHub displays PNG images; download/open Folium HTML in a browser to interact with maps. Raw data and feature caches remain local. Published classifier metrics use approximate reference labels; HMM and distributed-demo results require separate verification.
+
 GPS map matching and route reconstruction for the PES University ML hackathon, 18 November 2026.
 
 ## Start

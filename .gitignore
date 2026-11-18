@@ -14,5 +14,8 @@ artifacts/models/*
 !artifacts/models/.gitkeep
 !artifacts/models/hist_gradient_boosting/
 !artifacts/models/tuned/
-outputs/
+outputs/*
+!outputs/evaluation_1130/
+!outputs/inspection/
+!outputs/PathSnap-1130-evidence.zip
 
