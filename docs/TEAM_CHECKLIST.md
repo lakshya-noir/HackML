@@ -45,8 +45,10 @@ Current evidence: baseline Top-1 85.85%; tuned 85.70%; candidate miss rate 0.2%,
 
 - [ ] S1 — ALL: assign physical Laptop 1 and Laptop 2; record IP, OS, Python version, owners and network below. Done when everyone knows which machines will demonstrate.
 - [ ] S2 — N: confirm receipt of current candidate/model code and both artifacts on Laptop 1; install compatible dependencies. Confirm feature schema and model loading work on that machine.
+  - Evidence: N 10:50: candidate/model code + tuned artifact load and score in Nakul's dev environment (sklearn 1.9.1). Still to repeat on physical Laptop 1.
 - [ ] S3 — L + N: read `docs/CONTRACT.md` together; agree on candidate scores, decoder output, coordinate order, units and API fields. Record any agreed changes.
 - [ ] S4 — N + U: start real `/health` endpoint on Laptop 1, bound to `0.0.0.0:8000`; call it from Laptop 2 over the actual network. Save response and IP. Depends on S1, not on a completed decoder.
+  - Evidence: N 10:50: server ready — `run_api.bat` or `python -m pathsnap.api.app --host 0.0.0.0 --port 8000`; Laptop 2 check: `python scripts/smoke_test_api.py --api http://<ip>:8000`. Pending real-network test.
 - [ ] S5 — U: create report outline with required sections; reserve places for measured figures and UI/API evidence. Start assembling existing results immediately.
 - [ ] S6 — L: confirm whether professor provides an official observation-label alignment/evaluation method. If none, explicitly justify the team's surrogate method; record answer/assumption before interpreting pointwise accuracy.
 
@@ -79,13 +81,17 @@ These lanes run concurrently. Within each lane, follow the listed order.
 
 ### Decoder lane — N
 
-- [ ] H1 — N: build graph connectivity and distance/routing helpers from trip-local nodes/arcs. Confirm directed/undirected interpretation from data and document it.
-- [ ] H2 — N: implement HMM hidden states as candidate road segments, emissions from classifier scores, and transitions based on reachable road paths and observed motion. Explain probabilities and assumptions.
-- [ ] H3 — N: implement Viterbi with stable log scores, backtracking, preserved candidate/arc correspondence, one output per original observation, and explicit warnings/gap policy. After H1–H2.
+- [x] H1 — N (10:50): build graph connectivity and distance/routing helpers from trip-local nodes/arcs. Confirm directed/undirected interpretation from data and document it.
+  - Evidence: `pathsnap/decoder/graph.py`; directed interpretation documented in `docs/DECODER_API.md` (consecutive .route arcs chain head-to-tail).
+- [x] H2 — N (10:50): implement HMM hidden states as candidate road segments, emissions from classifier scores, and transitions based on reachable road paths and observed motion. Explain probabilities and assumptions.
+  - Evidence: `pathsnap/decoder/viterbi.py` module docstring + `docs/DECODER_API.md` §HMM design.
+- [x] H3 — N (10:50): implement Viterbi with stable log scores, backtracking, preserved candidate/arc correspondence, one output per original observation, and explicit warnings/gap policy. After H1–H2.
+  - Evidence: `decode()` follows CONTRACT signature; returns one arc/None per .track row, `route_arc_ids`, `route_pieces`, `warnings`.
 
 ### Interface/report lane — U with N
 
 - [ ] U1 — U + N: build simple trip selector, run button, status/errors, predicted-route map and metric display using the agreed response format. UI shell can precede a working prediction endpoint.
+  - Evidence: N scaffold done 10:50: `ui/index.html` (trip list, predict, map layers, metrics, timing, warnings, server log; Leaflet bundled offline). Tested against local API: `results/ui_trip00000056.png`. U to operate/test on Laptop 2 and own completion.
 - [ ] U2 — U: add verified dataset/ML results and explanations to report draft. Include every model actually tried, model choice, configuration/objective, results and limitations.
 - [ ] U3 — U: collect first-evaluation evidence in one folder: inventory, EDA plots, feature explanation, five-model comparison and executable command list. After D1 and M1–M2.
 
@@ -100,19 +106,27 @@ First-evaluation feedback: pending.
 
 ## 11:30–12:15 — integrate classifier, decoder and API
 
-- [ ] H4 — N + L: test a synthetic connected route, impossible transition, missing candidate, repeated point, GPS gap and disconnected graph. Check output arc IDs and geometry are valid. After H3.
-- [ ] H5 — N + L: pass actual candidate scores through decoder on at least one full student-test trip. Preserve original point indices and count. After S2, H4.
-- [ ] A1 — N: implement `/trips` and `/predict`; use configured allowed trip IDs, actual prediction pipeline, appropriate errors and model-loading logic. After H5 for complete inference.
-- [ ] A2 — N + L: add server-side evaluation, separated from prediction. Keep reference labels/routes out of model features and evaluator UI response. Record alignment method and metric definitions.
-- [ ] A3 — N: construct road-following geometry from valid graph arcs, retaining disconnected pieces as separate lines; no invented straight connections across gaps.
-- [ ] A4 — N: log trip ID, actual request, processing outcome and timings on the receiving laptop; verify errors for unknown trip and missing assets.
+- [x] H4 — N (10:50; L review pending): test a synthetic connected route, impossible transition, missing candidate, repeated point, GPS gap and disconnected graph. Check output arc IDs and geometry are valid. After H3.
+  - Evidence: `python scripts/test_decoder.py` → 6/6 PASS (connected/direction, impossible transition, missing candidates→None, repeated point, GPS gap, disconnected graph→split route).
+- [x] H5 — N (10:50; in Nakul's dev environment, Laptop 1 re-run pending S2): pass actual candidate scores through decoder on at least one full student-test trip. Preserve original point indices and count. After S2, H4.
+  - Evidence: all 10 student_test trips decoded with `generate_candidates` + `score_candidates(..., artifacts/models/tuned)`; observation count preserved; `results/decoder_comparison_student_test.csv`.
+- [x] A1 — N (10:50): implement `/trips` and `/predict`; use configured allowed trip IDs, actual prediction pipeline, appropriate errors and model-loading logic. After H5 for complete inference.
+  - Evidence: `pathsnap/api/app.py`; unknown trip → 404 (tested incl. `../../etc`), model missing → 503; trips resolved only against configured folder.
+- [x] A2 — N (10:50; L to confirm label method vs S6): add server-side evaluation, separated from prediction. Keep reference labels/routes out of model features and evaluator UI response. Record alignment method and metric definitions.
+  - Evidence: `pathsnap/decoder/evaluation.py` (monotone route alignment), called only after prediction; response carries metrics only, no reference arcs/geometry.
+- [x] A3 — N (10:50): construct road-following geometry from valid graph arcs, retaining disconnected pieces as separate lines; no invented straight connections across gaps.
+  - Evidence: `route_geojson` MultiLineString (lon,lat) built from graph arcs; disconnected parts stay separate lines.
+- [x] A4 — N (10:50): log trip ID, actual request, processing outcome and timings on the receiving laptop; verify errors for unknown trip and missing assets.
+  - Evidence: console + `logs/api_requests.log`: client IP, method, path, status, ms; PRED line with trip, obs, timing, pieces, HMM/CLF metrics, warnings; `/logs/recent`.
 - [ ] U4 — U + N: connect UI to the actual API and show returned route, measured metrics, runtime and useful errors. After A1–A3.
 - [ ] G1 — ALL: one complete student-test trip works from Laptop 2 through Laptop 1 to displayed prediction. After S4, A4, U4. Capture evidence.
 
 ## 12:15–1:00 — evaluate the reconstructed routes
 
-- [ ] V1 — N + D: run classifier-only and classifier-plus-HMM on all ten student-test trips with the same observations and labels. Save per-trip and aggregate outputs.
-- [ ] V2 — N + L: define and measure route continuity and sequence performance (for example, documented route-sequence overlap/edit measure). Avoid an undefined “continuity” score. Include timing and failures.
+- [x] V1 — N (10:50; D to verify): run classifier-only and classifier-plus-HMM on all ten student-test trips with the same observations and labels. Save per-trip and aggregate outputs.
+  - Evidence: `python scripts/evaluate_decoder.py` → mean point acc 0.8696 → 0.9236, route F1 0.830 → 0.968, mean pieces 21.6 → 1.6 (`results/decoder_summary_student_test.json`).
+- [x] V2 — N (10:50; L to review): define and measure route continuity and sequence performance (for example, documented route-sequence overlap/edit measure). Avoid an undefined “continuity” score. Include timing and failures.
+  - Evidence: definitions in `docs/DECODER_API.md` and inside `results/decoder_summary_student_test.json`; per-trip pipeline time recorded (mean 1.3 s).
 - [ ] V3 — D: compare where decoding helps, hurts or fails using maps, metrics and concrete trip examples. After V1–V2.
 - [ ] V4 — L: review whether 200 points per trip is sufficient; if time allows, run a versioned larger-data experiment and full student-test evaluation. Clearly distinguish initial sampled and later full-trip results; preserve both.
 - [ ] V5 — L + N: freeze the development model, feature schema and decoder configuration using permitted development evidence. Record artifact/version and all selected parameters. Retrain after feature/label changes before freezing.
@@ -168,6 +182,8 @@ These are future tasks. Publishing the checklist does not authorise final submis
 - 10:36 AM planning baseline: C1–C11 complete based on local files and prior execution. Visual label validation, full EDA, plots, HMM, API, UI, network demo, report and submission remain unverified. Teammate work on other laptops has not been inspected.
 - Subsequent map-generation session: D3 complete; 4,988 full-trip points scored across three selected student-test trips. D4 remains pending human review. Simple notes: `docs/WORK_LOG_SIMPLE.md`. Member names confirmed: Nikhil (D), Mahesh (U).
 - Approximately 11:10 AM: local all-trip audit, static image inspection, three documented findings, model diagnostics and first-evaluation evidence pack completed by L/Codex while Nikhil unavailable. D1/D2/D4/D5/M1/M2/M3/E1 closed with evidence. Nikhil's personal review, official alignment clarification, teammate integration, rehearsal and final deployment remain unverified. No pushes.
+
+- 10:50 N: decoder (H1–H5), API (A1–A4), classifier-vs-HMM evaluation (V1–V2), UI scaffold, Folium maps (`analysis/maps/`), Windows launchers and `docs/DECODER_API.md` added. Decoder config is the documented default (σ=10 m, β=5 m, w=0.5) — not yet tuned on train trips with the tuned HGB scores; any tuning must use train/student_test only (V5). Not yet run on physical Laptop 1 / real network (S2, S4, G1).
 
 ## Next four actions
 
